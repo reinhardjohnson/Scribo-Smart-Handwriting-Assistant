@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scribo</title>
+<style>
+:root{--bg:#eef3f9;--surface:#fff;--text:#1f2933;--muted:#5f6c7b;--line:#d5dce6;--blue:#2563b0;--teal:#128a7e;--orange:#d9731a;--btn-text:#fff;--ink:#1b2a41;--guide:#e1e8f1;--gnum:#b7c3d4;--tint:#e8f0fb;--warn:#8a5a00;--warn-bg:#fdf3dc;--hero:#173a63}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121821;--surface:#1b222d;--text:#e8eaed;--muted:#9aa6b5;--line:#313b49;--blue:#6aa5e6;--teal:#4fc3b4;--orange:#f0a35e;--btn-text:#10161c;--ink:#e8eaed;--guide:#2a3340;--gnum:#4a5668;--tint:#222d3d;--warn:#f0c674;--warn-bg:#2b2618;--hero:#0f2036}}
+:root[data-theme="dark"]{--bg:#121821;--surface:#1b222d;--text:#e8eaed;--muted:#9aa6b5;--line:#313b49;--blue:#6aa5e6;--teal:#4fc3b4;--orange:#f0a35e;--btn-text:#10161c;--ink:#e8eaed;--guide:#2a3340;--gnum:#4a5668;--tint:#222d3d;--warn:#f0c674;--warn-bg:#2b2618;--hero:#0f2036}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+.hero{background:var(--hero);color:#fff;padding:22px 20px 0}
+.in{max-width:1080px;margin:0 auto}
+h1{font-size:22px;font-weight:600;margin:0 0 4px}
+.hero p{margin:0 0 16px;color:#c3d3e8}
+.tabs{display:flex;gap:4px}
+.tab{font:inherit;font-weight:500;padding:10px 18px;border:0;border-radius:6px 6px 0 0;background:transparent;color:#c3d3e8;cursor:pointer}
+.tab[aria-selected=true]{background:var(--bg);color:var(--text)}
+.tab:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 20px 40px}
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--c,var(--blue));border-radius:6px;padding:20px}
+h2{font-size:16px;font-weight:600;margin:0 0 14px}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+select{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:7px 10px;min-width:220px}
+.prompt{padding:10px 12px;background:var(--tint);border-left:3px solid var(--c,var(--blue));margin-bottom:12px}
+.surface{border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar{display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);background:var(--tint)}
+canvas{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair;background:var(--surface) repeating-linear-gradient(to bottom,transparent 0,transparent 63px,var(--guide) 63px,var(--guide) 64px)}
+canvas.sq{background:var(--surface)}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+button.b{font:inherit;font-weight:500;padding:8px 16px;border-radius:4px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+button.p{background:var(--c,var(--blue));border-color:var(--c,var(--blue));color:var(--btn-text)}
+.pens{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.sw{width:28px;height:28px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed=true]{box-shadow:0 0 0 2px var(--text)}
+.fb{padding:12px 14px;background:var(--tint);border-radius:4px;margin-bottom:20px}
+.fb.warn{background:var(--warn-bg)}.fb.warn strong{color:var(--warn)}
+.fb strong{display:block;margin-bottom:2px}.fb span{font-size:14px}
+dl{margin:0}dl div{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}dl div:last-child{border:0}
+dt{color:var(--muted)}dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--muted);margin:16px 0 0}
+.score{font-size:34px;font-weight:700;color:var(--c);line-height:1.1}
+.big{font-size:44px;font-weight:700;margin:6px 0}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.choice{min-height:84px;border-radius:8px;border:2px solid var(--line);font:inherit;font-size:18px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text)}
+.choice.swatch{border-color:transparent}
+.choice:hover{border-color:var(--text)}
+.swatchbig{width:120px;height:120px;border-radius:12px;margin:8px 0;border:1px solid var(--line)}
+[hidden]{display:none!important}
+@media(max-width:820px){.layout{grid-template-columns:1fr}canvas{height:260px}}
+</style>
+</head>
+<body>
+<div class="hero"><div class="in">
+  <h1>Scribo</h1>
+  <p>Practise writing, then try the number and colour games.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-t="practice">Practice</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="numbers">Numbers game</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="colors">Colours game</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+<!-- PRACTICE -->
+<div class="layout" id="t-practice">
+  <section class="panel">
+    <h2>Writing area</h2>
+    <div class="row"><label for="prompt">Activity</label>
+      <select id="prompt">
+        <option value="Copy this sentence: The quick brown fox." data-target="The quick brown fox.">Copy a short sentence</option>
+        <option value="Write the letters: A B C" data-target="A B C">Practise letter formation</option>
+        <option value="Copy this sentence: I like learning." data-target="I like learning.">Practise word spacing</option>
+        <option value="Write anything you like.">Free writing</option>
+      </select></div>
+    <div class="prompt" id="instruction">Copy this sentence: The quick brown fox.</div>
+    <div class="pens" id="pens" role="group" aria-label="Pen colour"><span style="color:var(--muted);font-size:13px">Pen</span></div>
+    <div class="surface"><div class="bar"><span>Mouse, touch or stylus</span><span id="penstatus">Not started</span></div><canvas id="pad" aria-label="Handwriting canvas"></canvas></div>
+    <div class="actions">
+      <button class="b p" id="start">Start practice</button><button class="b" id="clear">Clear</button><button class="b" id="finish">Finish</button><button class="b" id="check">Check my writing</button>
+    </div>
+  </section>
+  <aside class="panel" style="--c:var(--teal)">
+    <h2>Feedback</h2>
+    <div class="fb" id="feedback" aria-live="polite"><strong id="fbtitle">Ready</strong><span id="fbtext">Select Start practice, then write in the area on the left.</span></div>
+    <dl>
+      <div><dt>Strokes</dt><dd id="strokes">0</dd></div>
+      <div><dt>Strokes per minute</dt><dd id="speed">–</dd></div>
+      <div><dt>Time</dt><dd id="duration">0 s</dd></div>
+      <div><dt>Pen pressure</dt><dd id="pressure">Not available</dd></div>
+    </dl>
+    <p class="note" id="aistate">Your writing is checked automatically a moment after you lift the pen, and scribbles are flagged as you draw.</p><p class="note">Pressure is shown only when a stylus reports it. This tool is for practice and is not a diagnostic test.</p>
+  </aside>
+</div>
+
+<!-- NUMBERS -->
+<div class="layout" id="t-numbers" hidden style="--c:var(--teal)">
+  <section class="panel">
+    <h2>Write the number</h2>
+    <div class="prompt" id="nprompt">Press Start game to begin.</div>
+    <div class="surface"><div class="bar"><span id="nround">Round 0 of 10</span><label><input type="checkbox" id="nguide" checked> Show tracing guide</label></div><canvas class="sq" id="npad" aria-label="Number writing canvas"></canvas></div>
+    <div class="actions">
+      <button class="b p" id="nstart">Start game</button>
+      <button class="b" id="nok" disabled>Looks right</button>
+      <button class="b" id="nretry" disabled>Try again</button>
+    </div>
+  </section>
+  <aside class="panel">
+    <h2>Score</h2>
+    <div class="score" id="nscore">0 / 10</div>
+    <p class="note" id="nmsg">Trace or write each number you are shown. You decide whether your number looks right, then move on.</p>
+  </aside>
+</div>
+
+<!-- COLORS -->
+<div class="layout" id="t-colors" hidden style="--c:var(--orange)">
+  <section class="panel">
+    <h2>Colour match</h2>
+    <div class="prompt" id="cq">Press Start game to begin.</div>
+    <div id="cshow"></div>
+    <div class="choices" id="cchoices"></div>
+    <div class="actions"><button class="b p" id="cstart">Start game</button><span id="cround" style="color:var(--muted)">Round 0 of 10</span></div>
+  </section>
+  <aside class="panel">
+    <h2>Score</h2>
+    <div class="score" id="cscore">0 / 10</div>
+    <p class="note" id="cmsg">Match each colour name to its colour, or name the colour you see.</p>
+  </aside>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const COLORS=[["Red","#d64545"],["Blue","#2f6fd0"],["Green","#2e9e5b"],["Yellow","#f2c230"],["Orange","#ee8a2b"],["Purple","#8a52c8"],["Pink","#e86aa6"],["Brown","#8b5a3c"]];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function Pad(c){
+  const x=c.getContext('2d'),P={pts:[],color:null,guide:'',onStart:null,onMove:null,drawing:false,enabled:()=>true};
+  P.size=()=>{const r=c.getBoundingClientRect();if(!r.width)return;const d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;x.setTransform(d,0,0,d,0,0);P.draw()};
+  P.draw=()=>{
+    x.clearRect(0,0,c.clientWidth,c.clientHeight);
+    if(P.guide){x.save();x.font='bold '+Math.min(c.clientHeight*.85,260)+'px Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineWidth=3;x.setLineDash([8,8]);x.strokeStyle=css('--gnum');x.strokeText(P.guide,c.clientWidth/2,c.clientHeight/2+8);x.restore()}
+    x.lineWidth=2.6;x.lineCap='round';x.lineJoin='round';
+    for(const s of P.pts){if(s.length<2)continue;x.strokeStyle=s.color;x.beginPath();x.moveTo(s[0].x,s[0].y);for(let i=1;i<s.length;i++)x.lineTo(s[i].x,s[i].y);x.stroke()}
+  };
+  P.clear=()=>{P.pts=[];P.draw()};
+  const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}};
+  c.addEventListener('pointerdown',e=>{if(!P.enabled())return;P.drawing=true;c.setPointerCapture(e.pointerId);const s=[pos(e)];s.color=P.color||css('--ink');P.pts.push(s);P.onStart&&P.onStart(e)});
+  c.addEventListener('pointermove',e=>{if(!P.drawing)return;const p=pos(e),s=P.pts[P.pts.length-1],q=s[s.length-1];s.push(p);x.lineWidth=2.6;x.lineCap='round';x.strokeStyle=s.color;x.beginPath();x.moveTo(q.x,q.y);x.lineTo(p.x,p.y);x.stroke();P.onMove&&P.onMove(e,p)});
+  const end=()=>{P.drawing=false;P.onEnd&&P.onEnd()};
+  c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+  return P;
+}
+
+/* Tabs */
+const pads={};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t===b));
+  ['practice','numbers','colors'].forEach(n=>$('t-'+n).hidden=n!==b.dataset.t);
+  Object.values(pads).forEach(p=>p.size());
+});
+
+/* Practice */
+const pad=pads.p=Pad($('pad'));
+let started=false,strokes=0,startTime=0,lastFb=0,timer=null,pressure=null;
+const pens=$('pens');
+COLORS.concat([["Dark",null]]).forEach(([n,h],i)=>{
+  const b=document.createElement('button');b.className='sw';b.title=n;b.setAttribute('aria-label',n+' pen');
+  b.style.background=h||'var(--ink)';b.setAttribute('aria-pressed',i===8);
+  b.onclick=()=>{pad.color=h;pens.querySelectorAll('.sw').forEach(s=>s.setAttribute('aria-pressed',s===b))};
+  pens.appendChild(b);
+});
+const elapsed=()=>started?(Date.now()-startTime)/1000:0;
+function fb(t,m,w){$('fbtitle').textContent=t;$('fbtext').textContent=m;$('feedback').className='fb'+(w?' warn':'')}
+function update(){const s=elapsed();$('strokes').textContent=strokes;$('duration').textContent=Math.floor(s)+' s';$('speed').textContent=started&&s>=5?Math.round(strokes*60/s):'–';$('pressure').textContent=pressure===null?'Not available':Math.round(pressure*100)+'%'}
+pad.enabled=()=>{if(!started){fb('Practice not started','Select Start practice before writing.',true)}return started};
+pad.onStart=()=>{clearTimeout(idle);strokes++;$('penstatus').textContent='Writing';update()};
+pad.onMove=(e,p)=>{
+  pressure=e.pointerType==='pen'?e.pressure:null;
+  {const cur=pad.pts[pad.pts.length-1];if(cur.length%10===0&&performance.now()-flagT>2500&&scribbly(cur))flag('That looks like scribbling','Slow down and draw each letter on purpose. Look at the prompt above and copy it.')}
+  if(p.t-lastFb>1500&&p.t-flagT>3500){lastFb=p.t;const s=Math.max(1,elapsed()),r=strokes*60/s;
+    if(s>8&&r>55)fb('Slow down a little','You are writing many strokes quickly. Focus on forming each letter.',true);
+    else if(p.y<20||p.y>$('pad').clientHeight-20)fb('Check alignment','Keep your writing inside the lined area.',true);
+    else fb('Good pace','Keep writing and leave a clear space between words.')}
+  update()};
+pad.onEnd=()=>{if(!started)return;$('penstatus').textContent='Ready to write';localCheck();update();schedule()};
+
+/* Writing checks: instant stroke analysis, plus an AI look at the page after a pause */
+let flagT=0,idle=null,ctl=null,lastAi=0,aiOff=false,checkedAt=-1,sampleP=null;
+function flag(t,m){flagT=performance.now();fb(t,m,true)}
+function strokeInfo(s){let len=0,x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(let i=0;i<s.length;i++){const a=s[i];x0=Math.min(x0,a.x);x1=Math.max(x1,a.x);y0=Math.min(y0,a.y);y1=Math.max(y1,a.y);if(i)len+=Math.hypot(a.x-s[i-1].x,a.y-s[i-1].y)}
+  const r=[s[0]];for(const a of s){const b=r[r.length-1];if(Math.hypot(a.x-b.x,a.y-b.y)>=8)r.push(a)}
+  let rev=0;for(let i=2;i<r.length;i++){const a=Math.atan2(r[i-1].y-r[i-2].y,r[i-1].x-r[i-2].x),b=Math.atan2(r[i].y-r[i-1].y,r[i].x-r[i-1].x);let d=Math.abs(b-a);if(d>Math.PI)d=2*Math.PI-d;if(d>2.2)rev++}
+  return{len,diag:Math.hypot(x1-x0,y1-y0),rev}}
+function scribbly(s){if(s.length<8)return false;const k=strokeInfo(s);return(k.len>120&&k.rev>=5&&k.diag/k.len<.3)||(k.len>300&&k.diag/k.len<.12)}
+function localCheck(){
+  const rec=pad.pts.slice(-8);if(!rec.length)return;
+  if(scribbly(rec[rec.length-1]))return flag('That looks like scribbling','Slow down and draw each letter on purpose. Look at the prompt above and copy it.');
+  if(rec.length>=6&&rec.filter(s=>strokeInfo(s).len<12).length/rec.length>=.7)flag('Those look like random dots','Write whole letters instead of dots. Look at the prompt above and copy it.')}
+function resetCheck(){clearTimeout(idle);ctl&&ctl.abort();ctl=null;checkedAt=-1}
+function schedule(){clearTimeout(idle);if(aiOff||!started||pad.pts.length<3)return;idle=setTimeout(()=>aiCheck(false),Math.max(2500,5000-(Date.now()-lastAi)))}
+function getSample(){return sampleP||(sampleP=(typeof claude!=='undefined'?claude.use('sample'):Promise.resolve(null)).catch(()=>null))}
+function snapshot(){const c=$('pad'),w=Math.min(900,c.clientWidth),k=w/c.clientWidth,o=document.createElement('canvas');o.width=w;o.height=Math.round(c.clientHeight*k);
+  const g=o.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,o.width,o.height);g.scale(k,k);g.fillStyle=g.strokeStyle='#000';g.lineWidth=3;g.lineCap=g.lineJoin='round';
+  for(const s of pad.pts){if(s.length<2){g.beginPath();g.arc(s[0].x,s[0].y,2.5,0,7);g.fill();continue}g.beginPath();g.moveTo(s[0].x,s[0].y);for(const p of s)g.lineTo(p.x,p.y);g.stroke()}
+  return new Promise(r=>o.toBlob(r,'image/png'))}
+function aiOffMsg(){aiOff=true;$('aistate').textContent='Checking what you wrote is not available here. Scribble detection still works.'}
+async function aiCheck(manual){
+  if(!started){if(manual)fb('Practice not started','Select Start practice first.',true);return}
+  if(pad.pts.length<2){if(manual)fb('Nothing to check','Write something first.',true);return}
+  if(!manual&&pad.pts.length===checkedAt)return;
+  const sample=await getSample();let lim=null;try{lim=sample&&await sample.limits()}catch(e){}
+  if(!sample||!lim||!lim.images){aiOffMsg();if(manual)fb('Check not available','Scribble detection still works while you write.',true);return}
+  const target=$('prompt').selectedOptions[0].dataset.target||'';
+  const blob=await snapshot();checkedAt=pad.pts.length;lastAi=Date.now();
+  ctl&&ctl.abort();ctl=new AbortController();const mine=ctl;$('penstatus').textContent='Checking…';
+  const q='You are a gentle handwriting helper for a child. The image shows what the child has handwritten so far (black ink on white). '+(target?'The child was asked to copy: "'+target+'". They may be partway through.':'The child is doing free writing.')+'\nReply with JSON only: {"verdict":"matches|partial|different|scribble|blank","message":"..."}\nmatches = the target is fully and legibly written (exact case and punctuation do not matter). partial = what is written so far is a correct beginning of the target. different = real letters or words that are not part of the target. scribble = random strokes, lines or dots that are not letters. blank = nothing readable yet. For free writing use only matches (real letters), scribble or blank.\nmessage: one short, kind sentence for a child (max 18 words) saying what to do next.';
+  try{
+    const r=await sample(q,{images:[blob],signal:mine.signal,modelTier:'quick',cache:false});
+    if(mine!==ctl)return;
+    const j=JSON.parse(r.text.match(/\{[\s\S]*\}/)[0]),m=String(j.message||'').slice(0,160);
+    if(j.verdict==='matches')fb('Well done','That matches the prompt. '+(m||'Clear and try another activity.'));
+    else if(j.verdict==='different')flag('That is not the sentence',m||'Look at the prompt above and copy it.');
+    else if(j.verdict==='scribble')flag('That looks like random strokes',m||'Write real letters. Look at the prompt above and copy it.');
+    else if(j.verdict==='partial')fb('Good start',m||'Keep going.');
+    else fb('Keep writing',m||'Write the letters of the prompt.');
+  }catch(err){
+    if(mine!==ctl)return;
+    if(err&&err.code==='not_granted')aiOffMsg();
+    else if(manual)fb('Could not check','Try again in a moment.',true);
+  }finally{if(mine===ctl&&started)$('penstatus').textContent='Ready to write'}
+}
+$('check').onclick=()=>aiCheck(true);
+$('start').onclick=()=>{started=true;startTime=Date.now();$('penstatus').textContent='Ready to write';$('instruction').textContent=$('prompt').value;fb('Practice started','Write at a comfortable pace and keep your letters on the guide lines.');clearInterval(timer);timer=setInterval(update,1000);update()};
+$('clear').onclick=()=>{resetCheck();pad.clear();strokes=0;pressure=null;update();fb('Cleared','The writing area is empty. Continue when you are ready.')};
+$('finish').onclick=()=>{resetCheck();const s=Math.floor(elapsed());started=false;clearInterval(timer);$('penstatus').textContent='Not started';fb('Practice finished','You wrote '+strokes+' strokes in '+s+' seconds. Review your writing, then try again.');update()};
+$('prompt').onchange=e=>$('instruction').textContent=e.target.value;
+
+/* Numbers game */
+const npad=pads.n=Pad($('npad'));
+let nr=0,ns=0,nplay=false,nnum='';
+const nsetGuide=()=>{npad.guide=$('nguide').checked?nnum:'';npad.draw()};
+npad.enabled=()=>nplay;
+npad.onEnd=()=>{if(nplay){$('nok').disabled=false;$('nretry').disabled=false}};
+function nnext(){
+  if(nr>=10){nplay=false;$('nprompt').textContent='Game finished';npad.guide='';npad.clear();$('nok').disabled=$('nretry').disabled=true;
+    $('nmsg').textContent='You finished with '+ns+' out of 10. Press Start game to play again.';return}
+  nr++;nnum=String(Math.floor(Math.random()*10));
+  $('nprompt').textContent='Write this number: '+nnum;$('nround').textContent='Round '+nr+' of 10';
+  npad.pts=[];nsetGuide();$('nok').disabled=$('nretry').disabled=true;
+}
+$('nstart').onclick=()=>{nr=0;ns=0;nplay=true;$('nscore').textContent='0 / 10';$('nmsg').textContent='Write the number in the box. Press Looks right when you are happy with it.';nnext()};
+$('nok').onclick=()=>{ns++;$('nscore').textContent=ns+' / 10';nnext()};
+$('nretry').onclick=()=>{npad.pts=[];npad.draw();$('nok').disabled=$('nretry').disabled=true};
+$('nguide').onchange=nsetGuide;
+
+/* Colours game */
+let cr=0,cs=0,cplay=false,lock=false;
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]);
+function cnext(){
+  if(cr>=10){cplay=false;$('cq').textContent='Game finished';$('cshow').innerHTML='';$('cchoices').innerHTML='';
+    $('cmsg').textContent='You scored '+cs+' out of 10. Press Start game to play again.';return}
+  cr++;lock=false;$('cround').textContent='Round '+cr+' of 10';
+  const set=shuffle(COLORS).slice(0,4),ans=set[Math.floor(Math.random()*4)],byName=Math.random()<.5;
+  $('cq').textContent=byName?'Tap the colour: '+ans[0]:'What colour is this?';
+  $('cshow').innerHTML=byName?'':'<div class="swatchbig" style="background:'+ans[1]+'"></div>';
+  const box=$('cchoices');box.innerHTML='';
+  set.forEach(o=>{const b=document.createElement('button');b.className='choice'+(byName?' swatch':'');
+    if(byName){b.style.background=o[1];b.setAttribute('aria-label',o[0])}else b.textContent=o[0];
+    b.onclick=()=>{if(lock)return;lock=true;const ok=o===ans;if(ok)cs++;$('cscore').textContent=cs+' / 10';
+      $('cmsg').textContent=ok?'Correct.':'Not this time. The answer was '+ans[0]+'.';
+      b.style.borderColor=ok?'var(--teal)':'#d64545';setTimeout(cnext,900)};
+    box.appendChild(b)});
+}
+$('cstart').onclick=()=>{cr=0;cs=0;cplay=true;$('cscore').textContent='0 / 10';$('cmsg').textContent='';cnext()};
+
+addEventListener('resize',()=>Object.values(pads).forEach(p=>p.size()));
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>Object.values(pads).forEach(p=>p.draw()));
+Object.values(pads).forEach(p=>p.size());update();
+</script>
+</body>
+</html>
